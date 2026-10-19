@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexusTech // Dropship Storefront</title>
+    <style>
+        :root {
+            --bg-color: #121417;
+            --panel-color: #1a1d23;
+            --border-color: #2a2e39;
+            --text-main: #f0f2f5;
+            --text-muted: #9ba1a6;
+            --accent: #00f0ff;
+            --accent-hover: #00c4d1;
+            --font-stack: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-stack);
+            line-height: 1.6;
+        }
+
+        header {
+            background-color: var(--panel-color);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            color: var(--text-main);
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-left: 2rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        nav a:hover {
+            color: var(--accent);
+        }
+
+        .hero {
+            padding: 6rem 2rem;
+            text-align: center;
+            background: radial-gradient(circle at center, #1a2630 0%, var(--bg-color) 70%);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin-bottom: 1rem;
+            letter-spacing: -0.03em;
+        }
+
+        .hero h1 span {
+            color: var(--accent);
+        }
+
+        .hero p {
+            color: var(--text-muted);
+            font-size: 1.25rem;
+            max-width: 600px;
+            margin: 0 auto 2rem auto;
+        }
+
+        .btn {
+            background-color: var(--accent);
+            color: var(--bg-color);
+            padding: 0.8rem 2rem;
+            border-radius: 4px;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .btn:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 4rem 2rem;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            font-weight: 700;
+            border-left: 4px solid var(--accent);
+            padding-left: 1rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+
+        .card {
+            background-color: var(--panel-color);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+
+        .card:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+        }
+
+        .card-img {
+            height: 200px;
+            background-color: #22262f;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card-body {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-desc {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            flex-grow: 1;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .price {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .buy-btn {
+            background: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .buy-btn:hover {
+            background: var(--accent);
+            color: var(--bg-color);
+        }
+
+        footer {
+            background-color: var(--panel-color);
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">NEXUS<span>TECH</span></div>
+        <nav>
+            <a href="#gaming">Gaming Gear</a>
+            <a href="#ebike">E-Bike Hardware</a>
+            <a href="#contact">Support</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h1>Next-Gen Tech <span>Unleashed</span></h1>
+        <p>High-performance peripherals and elite e-bike components shipped direct to your setup.</p>
+        <a href="#gaming" class="btn">Explore Inventory</a>
+    </section>
+
+    <div class="container">
+        
+        <h2 id="gaming" class="section-title">Gaming Gear</h2>
+        <div class="grid">
+            
+            <div class="card">
+                <div class="card-img">[ Product Image Placeholder ]</div>
+                <div class="card-body">
+                    <div class="card-title">Apex Pro Wireless Mouse</div>
+                    <div class="card-desc">Ultra-low latency 8K polling rate, ergonomic chassis, optical switches.</div>
+                    <div class="card-footer">
+                        <span class="price">$149.99</span>
+                        <button class="buy-btn">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img">[ Product Image Placeholder ]</div>
+                <div class="card-body">
+                    <div class="card-title">CyberMech 75% Keyboard</div>
+                    <div class="card-desc">Hot-swappable magnetic switches, CNC aluminum frame, per-key RGB.</div>
+                    <div class="card-footer">
+                        <span class="price">$189.99</span>
+                        <button class="buy-btn">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img">[ Product Image Placeholder ]</div>
+                <div class="card-body">
+                    <div class="card-title">Spatial 7.1 Headset</div>
+                    <div class="card-desc">Haptic feedback drivers, active noise cancellation, memory foam ear cups.</div>
+                    <div class="card-footer">
+                        <span class="price">$129.99</span>
+                        <button class="buy-btn">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <h2 id="ebike" class="section-title">E-Bike Hardware</h2>
+        <div class="grid">
+            
+            <div class="card">
+                <div class="card-img">[ Product Image Placeholder ]</div>
+                <div class="card-body">
+                    <div class="card-title">52V 20Ah Triangle Battery</div>
+                    <div class="card-desc">Grade-A LG cells, smart BMS with thermal protection, high discharge capacity.</div>
+                    <div class="card-footer">
+                        <span class="price">$459.99</span>
+                        <button class="buy-btn">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img">[ Product Image Placeholder ]</div>
+                <div class="card-body">
+                    <div class="card-title">1500W Brushless Hub Motor</div>
+                    <div class="card-desc">High torque direct drive motor optimized for steep climbs and heavy payloads.</div>
+                    <div class="card-footer">
+                        <span class="price">$299.99</span>
+                        <button class="buy-btn">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-img">[ Product Image Placeholder ]</div>
+                <div class="card-body">
+                    <div class="card-title">Sine Wave Controller 45A</div>
+                    <div class="card-desc">Programmable vector control unit for smooth acceleration and regenerative braking.</div>
+                    <div class="card-footer">
+                        <span class="price">$139.99</span>
+                        <button class="buy-btn">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <footer>
+        <p>&copy; 2026 NexusTech Systems. All rights reserved. Direct Global Dropshipping.</p>
+    </footer>
+
+</body>
+</html>

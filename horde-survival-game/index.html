@@ -1,0 +1,408 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horde Survival - Stick Fighter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            margin: 0 auto;
+            background: #111;
+            border: 2px solid #333;
+        }
+
+        #ui {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            color: #0f0;
+            font-size: 16px;
+            text-shadow: 0 0 5px #0f0;
+        }
+
+        #game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #f00;
+            font-size: 32px;
+            text-shadow: 0 0 10px #f00;
+            display: none;
+        }
+
+        #restart-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #f00;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        #restart-btn:hover {
+            background: #c00;
+        }
+    </style>
+</head>
+<body>
+    <div id="ui">
+        Wave: <span id="wave">1</span> | Score: <span id="score">0</span> | Health: <span id="health">100</span>
+    </div>
+    <div id="game-over">
+        Game Over!
+        <div>Final Score: <span id="final-score">0</span></div>
+        <button id="restart-btn">Play Again</button>
+    </div>
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Set canvas size
+        function resizeCanvas() {
+            canvas.width = Math.min(window.innerWidth - 20, 800);
+            canvas.height = Math.min(window.innerHeight - 20, 600);
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Game constants
+        const PLAYER_SIZE = 30;
+        const ENEMY_SIZE = 25;
+        const PROJECTILE_SIZE = 5;
+        const MAX_ENEMIES = 20;
+
+        // Game state
+        let player = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            size: PLAYER_SIZE,
+            speed: 5,
+            health: 100,
+            maxHealth: 100,
+            level: 1,
+            xp: 0,
+            xpToLevel: 100,
+            projectiles: [],
+            lastShot: 0,
+            shotDelay: 500 // ms
+        };
+
+        let enemies = [];
+        let waves = 1;
+        let enemiesPerWave = 5;
+        let score = 0;
+        let gameActive = false;
+        let lastEnemySpawn = 0;
+        let enemySpawnDelay = 2000; // ms
+
+        // Input handling
+        const keys = {};
+        window.addEventListener('keydown', (e) => keys[e.code] = true);
+        window.addEventListener('keyup', (e) => keys[e.code] = false);
+
+        // Initialize game
+        function initGame() {
+            player.x = canvas.width / 2;
+            player.y = canvas.height / 2;
+            player.health = player.maxHealth;
+            player.projectiles = [];
+            enemies = [];
+            waves = 1;
+            score = 0;
+            gameActive = true;
+            document.getElementById('game-over').style.display = 'none';
+            spawnInitialEnemies();
+        }
+
+        function spawnInitialEnemies() {
+            for (let i = 0; i < enemiesPerWave; i++) {
+                spawnEnemy();
+            }
+        }
+
+                function spawnEnemy() {
+            const side = Math.floor(Math.random() * 4);
+            let x, y;
+
+            switch(side) {
+                case 0: // Top
+                    x = Math.random() * canvas.width;
+                    y = -ENEMY_SIZE;
+                    break;
+                case 1: // Right
+                    x = canvas.width + ENEMY_SIZE;
+                    y = Math.random() * canvas.height;
+                    break;
+                case 2: // Bottom
+                    x = Math.random() * canvas.width;
+                    y = canvas.height + ENEMY_SIZE;
+                    break;
+                case 3: // Left
+                    x = -ENEMY_SIZE;
+                    y = Math.random() * canvas.height;
+                    break;
+            }
+
+            // Determine if this should be a runner zombie (20% base chance, increases with wave)
+            const runnerChance = Math.min(0.1 + (waves * 0.015), 0.3); // 10% to 30% chance
+            const isRunner = Math.random() < runnerChance;
+
+            // Base stats
+            let speed = 1 + Math.random() * 1.5;
+            let health = 20 + (waves * 5);
+
+            // Apply runner modifiers if this is a runner zombie
+            if (isRunner) {
+                speed *= 1.3; // 30% faster
+                health *= 0.5; // 50% HP
+            }
+
+            enemies.push({
+                x,
+                y,
+                size: ENEMY_SIZE,
+                speed,
+                health,
+                maxHealth: health,
+                isRunner: isRunner // Flag to identify runner zombies
+            });
+        }
+
+        // Update game state
+        function update(deltaTime) {
+            if (!gameActive) return;
+
+            // Player movement
+            if (keys['ArrowUp'] || keys['KeyW']) player.y -= player.speed;
+            if (keys['ArrowDown'] || keys['KeyS']) player.y += player.speed;
+            if (keys['ArrowLeft'] || keys['KeyA']) player.x -= player.speed;
+            if (keys['ArrowRight'] || keys['KeyD']) player.x += player.speed;
+
+            // Keep player in bounds
+            player.x = Math.max(player.size/2, Math.min(canvas.width - player.size/2, player.x));
+            player.y = Math.max(player.size/2, Math.min(canvas.height - player.size/2, player.y));
+
+            // Shooting
+            if (keys['Space'] && Date.now() - player.lastShot > player.shotDelay) {
+                shootProjectile();
+                player.lastShot = Date.now();
+            }
+
+            // Update projectiles
+            for (let i = player.projectiles.length - 1; i >= 0; i--) {
+                const p = player.projectiles[i];
+                p.x += p.dx;
+                p.y += p.dy;
+
+                // Remove if off screen
+                if (p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height) {
+                    player.projectiles.splice(i, 1);
+                }
+            }
+
+            // Update enemies
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                const e = enemies[i];
+
+                // Move toward player
+                const dx = player.x - e.x;
+                const dy = player.y - e.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+
+                if (dist > 0) {
+                    e.x += (dx/dist) * e.speed;
+                    e.y += (dy/dist) * e.speed;
+                }
+
+                // Check collision with player
+                if (dist < (player.size + e.size)/2) {
+                    player.health -= 1;
+                    if (player.health <= 0) {
+                        endGame();
+                    }
+                    // Knockback
+                    e.x -= (dx/dist) * 5;
+                    e.y -= (dy/dist) * 5;
+                }
+
+                // Check collision with projectiles
+                for (let j = player.projectiles.length - 1; j >= 0; j--) {
+                    const p = player.projectiles[j];
+                    const pdx = p.x - e.x;
+                    const pdy = p.y - e.y;
+                    const pdist = Math.sqrt(pdx*pdx + pdy*pdy);
+
+                    if (pdist < (PROJECTILE_SIZE + e.size)/2) {
+                        e.health -= 10;
+                        player.projectiles.splice(j, 1);
+
+                        if (e.health <= 0) {
+                            score += 10;
+                            enemies.splice(i, 1);
+                            break; // Exit projectile loop for this enemy
+                        }
+                    }
+                }
+            }
+
+            // Spawn enemies
+            if (Date.now() - lastEnemySpawn > enemySpawnDelay && enemies.length < MAX_ENEMIES) {
+                spawnEnemy();
+                lastEnemySpawn = Date.now();
+            }
+
+            // Check wave completion
+            if (enemies.length === 0 && Date.now() - lastEnemySpawn > 3000) {
+                waves++;
+                enemiesPerWave = Math.min(5 + waves, 15);
+                enemySpawnDelay = Math.max(500, 2000 - waves*50);
+
+                for (let i = 0; i < enemiesPerWave; i++) {
+                    setTimeout(spawnEnemy, i * 300);
+                }
+            }
+
+            // Leveling
+            if (player.xp >= player.xpToLevel) {
+                player.level++;
+                player.xp -= player.xpToLevel;
+                player.xpToLevel = Math.floor(player.xpToLevel * 1.5);
+                // Level up bonuses
+                player.maxHealth += 10;
+                player.health = Math.min(player.health + 20, player.maxHealth);
+                player.shotDelay = Math.max(100, player.shotDelay - 50);
+            }
+        }
+
+        function shootProjectile() {
+            // Aim at mouse position
+            const mouseX = player.mouseX || canvas.width/2;
+            const mouseY = player.mouseY || canvas.height/2;
+
+            const dx = mouseX - player.x;
+            const dy = mouseY - player.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+
+            if (dist > 0) {
+                player.projectiles.push({
+                    x: player.x,
+                    y: player.y,
+                    size: PROJECTILE_SIZE,
+                    dx: (dx/dist) * 8,
+                    dy: (dy/dist) * 8
+                });
+            }
+        }
+
+        // End game
+        function endGame() {
+            gameActive = false;
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('game-over').style.display = 'block';
+        }
+
+        // Render game
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw player
+            ctx.fillStyle = '#0f0';
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, player.size/2, 0, Math.PI*2);
+            ctx.fill();
+
+            // Draw player health bar
+            ctx.fillStyle = '#f00';
+            ctx.fillRect(player.x - player.size/2, player.y - player.size/2 - 10, player.size, 5);
+            ctx.fillStyle = '#0f0';
+            ctx.fillRect(player.x - player.size/2, player.y - player.size/2 - 10,
+                        player.size * (player.health/player.maxHealth), 5);
+
+            // Draw projectiles
+            ctx.fillStyle = '#ff0';
+            for (const p of player.projectiles) {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size/2, 0, Math.PI*2);
+                ctx.fill();
+            }
+
+                        // Draw enemies
+            for (const e of enemies) {
+                // Enemy body
+                if (e.isRunner) {
+                    ctx.fillStyle = '#ff4500'; // Orange-red for runner zombies
+                } else {
+                    ctx.fillStyle = '#f00'; // Regular red for normal zombies
+                }
+                ctx.beginPath();
+                ctx.arc(e.x, e.y, e.size/2, 0, Math.PI*2);
+                ctx.fill();
+
+                // Enemy health bar
+                ctx.fillStyle = '#f00';
+                ctx.fillRect(e.x - e.size/2, e.y - e.size/2 - 5, e.size, 3);
+                ctx.fillStyle = '#0f0';
+                ctx.fillRect(e.x - e.size/2, e.y - e.size/2 - 5,
+                            e.size * (e.health/e.maxHealth), 3);
+                
+                // Optional: Add a visual indicator for runner zombies (small stripe)
+                if (e.isRunner) {
+                    ctx.fillStyle = '#ff0';
+                    ctx.fillRect(e.x - 2, e.y - e.size/2 - 2, 4, 2);
+                }
+            }
+
+            // Update UI
+            document.getElementById('wave').textContent = waves;
+            document.getElementById('score').textContent = score;
+            document.getElementById('health').textContent = Math.floor(player.health);
+        }
+
+        // Game loop
+        let lastTime = 0;
+        function gameLoop(timestamp) {
+            const deltaTime = timestamp - lastTime;
+            lastTime = timestamp;
+
+            update(deltaTime);
+            render();
+
+            if (gameActive) {
+                requestAnimationFrame(gameLoop);
+            }
+        }
+
+        // Mouse tracking
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            player.mouseX = e.clientX - rect.left;
+            player.mouseY = e.clientY - rect.top;
+        });
+
+        // Start game
+        document.getElementById('restart-btn').addEventListener('click', initGame);
+        initGame();
+        requestAnimationFrame(gameLoop);
+    </script>
+</body>
+</html>

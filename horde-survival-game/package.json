@@ -1,0 +1,29 @@
+{
+  "name": "horde-survival-stick-fighter",
+  "version": "1.0.0",
+  "description": "A fast-paced browser survival game inspired by Survivor.io and Naruto",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 8080",
+    "dev": "python -m http.server 8080",
+    "build": "echo 'No build step required - single file HTML game'"
+  },
+  "keywords": [
+    "game",
+    "html5",
+    "canvas",
+    "javascript",
+    "survival",
+    "browser-game"
+  ],
+  "author": "AI Venture Squad",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/horde-survival-stick-fighter"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/horde-survival-stick-fighter/issues"
+  },
+  "homepage": "https://github.com/yourusername/horde-survival-stick-fighter#readme"
+}
